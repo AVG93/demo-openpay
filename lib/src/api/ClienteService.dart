@@ -23,10 +23,39 @@ class ClienteService{
     );
 
     final responseJson = jsonDecode(response.body);
-    if(Routes.printResponses){print(responseJson);}
+    //if(Routes.printResponses){print(responseJson);}
 
     return List<Cliente>.from(responseJson.map((x) => Cliente.fromJson(x)));
   }
+
+
+  Future<Cliente> postCliente(Cliente c) async {
+    
+    final response = await http.post(
+      Uri.parse(Routes.postCliente), 
+      headers: Routes.headersOpenPay,
+      body: ClienteToJson(c)
+    );
+
+    final responseJson = jsonDecode(response.body);
+    if(Routes.printResponses){print(responseJson);}
+
+    return ClienteFromJson(response.body);
+  }
+
+
+  Future<bool> deleteCliente(String clienteId) async {
+    
+    final response = await http.delete(
+      Uri.parse(Routes.deleteCliente + '/$clienteId'), 
+      headers: Routes.headersOpenPay
+    );
+    
+    if(Routes.printResponses){print(response.toString());}
+
+    return response.statusCode == 204 ? true : false;
+  }
+
 
 
 

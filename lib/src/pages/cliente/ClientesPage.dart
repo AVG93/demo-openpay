@@ -14,16 +14,20 @@ class _ClientesPageState extends State<ClientesPage> {
 
   ClienteService clienteService = new ClienteService();
 
+  List<Cliente> clientes = <Cliente>[];
 
-  Widget _loadVisitantes(BuildContext context){
+
+  Widget _loadClientes(BuildContext context){
 
     return FutureBuilder(
       future: clienteService.getClientes(),
       builder: (BuildContext context, AsyncSnapshot<List<Cliente>> snapshot) {
         if(snapshot.hasData){
           print(snapshot.data);
+
+          this.clientes = snapshot.data!;
           
-          return _drawVisitanteItems(snapshot.data!, context);
+          return _drawClienteItems(this.clientes, context);
         }
         else{
           return Container(
@@ -36,15 +40,15 @@ class _ClientesPageState extends State<ClientesPage> {
 
   }
 
-  Widget _drawVisitanteItems(List<Cliente> visitantes, BuildContext context){
+  Widget _drawClienteItems(List<Cliente> clientes, BuildContext context){
 
-    if(visitantes.length > 0){
-      return ListView.separated(
-        itemCount: visitantes.length,
+    if(clientes.length > 0){
+      return ListView.builder(
+        itemCount: clientes.length,
         itemBuilder: (BuildContext context, int index) {
-          return itemCliente(context, visitantes[index], this.onClickItemCliente);
+          return itemCliente(context, clientes[index], this.onClickItemCliente, this.onDismissItemCliente, index);
         },
-        separatorBuilder: (BuildContext context, int index) => const Divider(),
+        //separatorBuilder: (BuildContext context, int index) => const Divider(),
       );
     }
     else{
@@ -65,6 +69,24 @@ class _ClientesPageState extends State<ClientesPage> {
     Navigator.pushNamed(context, '/clienteDetalle', arguments: c);//es un distinto tipo
   }
 
+  void onDismissItemCliente(Cliente c, int index){
+
+    clienteService.deleteCliente(c.id).then((resp){
+
+      setState(() {
+        //items.removeAt(index);
+        this.clientes.removeAt(index);
+        print(this.clientes.length);
+      });
+      
+      ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text('${c.email} eliminado')));
+
+    });
+
+    
+  }
+
   
 
   @override
@@ -75,7 +97,7 @@ class _ClientesPageState extends State<ClientesPage> {
       ),
       body: Builder(
         builder: (context) => Container(
-          child: _loadVisitantes(context),
+          child: _loadClientes(context),
         ),
       ),
       floatingActionButton: FloatingActionButton(

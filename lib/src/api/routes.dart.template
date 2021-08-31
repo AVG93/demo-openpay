@@ -15,6 +15,7 @@ class Routes{
 
 
   static const postCliente = apiUrl + '/customers';
-  static const getClientes = 'https://sandbox-api.openpay.mx/v1/$userIdOpenPay/customers';
+  static const getClientes = apiUrl + '/customers';
+  static const deleteCliente = apiUrl + '/customers';
   
 }

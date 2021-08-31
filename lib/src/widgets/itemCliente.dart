@@ -3,7 +3,7 @@
 import 'package:demo_openpay/src/models/Cliente.dart';
 import 'package:flutter/material.dart';
 
-Widget itemCliente(BuildContext context, Cliente c, Function onClick){
+Widget itemCliente(BuildContext context, Cliente c, Function onClick, Function onDismiss, int index){
     final _screenSize = MediaQuery.of(context).size;
     
     Icon icon = Icon(Icons.place, color: Colors.white,);
@@ -30,21 +30,31 @@ Widget itemCliente(BuildContext context, Cliente c, Function onClick){
     );
     
 
-    return ListTile(
-      leading: ClipRRect(
-        borderRadius: BorderRadius.circular(100.0),
-        child: Container(
-          width: _screenSize.width*.1,
-          height: _screenSize.width*.1,
-          color: colorContent,
-          child: icon,
-        ),
+    return Dismissible(
+      key: ValueKey(c.id),
+      direction: DismissDirection.endToStart,
+      background: Container(
+        color: Colors.red,
       ),
-      title: line_1,
-      subtitle: line_2,
-      onTap: (){
-        onClick(c);
+      onDismissed: (DismissDirection ds){
+        onDismiss(c, index);
       },
+      child: ListTile(
+        leading: ClipRRect(
+          borderRadius: BorderRadius.circular(100.0),
+          child: Container(
+            width: _screenSize.width*.1,
+            height: _screenSize.width*.1,
+            color: colorContent,
+            child: icon,
+          ),
+        ),
+        title: line_1,
+        subtitle: line_2,
+        onTap: (){
+          onClick(c);
+        },
+      ),
     );
   }
 
