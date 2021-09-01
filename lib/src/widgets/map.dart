@@ -1,4 +1,6 @@
 import 'dart:async';
+import 'package:flutter/foundation.dart';
+import 'package:flutter/gestures.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
@@ -6,6 +8,7 @@ class MapaGoogle{
 
   Completer<GoogleMapController> ctrl = Completer();
   CameraPosition camPos = CameraPosition(target: LatLng(0, 0));
+  Map<String, Marker> markers = {};
 
   MapaGoogle(Completer<GoogleMapController> ctrl, CameraPosition camPos){
     this.ctrl = ctrl;
@@ -14,18 +17,31 @@ class MapaGoogle{
 
   GoogleMap map(Function onTap){
     return new GoogleMap(
+        markers: this.markers.values.toSet(),
         zoomControlsEnabled: true,
         myLocationButtonEnabled: false,
         mapType: MapType.normal,
         initialCameraPosition: camPos,
         onMapCreated: (GoogleMapController controller){
-          ctrl.complete(controller);
+          try{
+            ctrl.complete(controller);
+          }
+          catch(ex){}
         },
         onTap: (LatLng coords){
           onTap(coords);
         },
-        //markers: _markers.values.toSet(),
+        gestureRecognizers: <Factory<OneSequenceGestureRecognizer>>[
+          new Factory<OneSequenceGestureRecognizer>(
+            () => new EagerGestureRecognizer(),
+          ),
+        ].toSet(),
+        
       );
+  }
+
+  void setMarkers(Map<String, Marker> markers){
+    this.markers = markers;
   }
 
   Future<void> moveCamera(CameraPosition cp) async {

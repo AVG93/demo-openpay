@@ -29,6 +29,7 @@ class _ClienteAltaPageState extends State<ClienteAltaPage> {
 
   late MapaGoogle ggMap;
   late GoogleMap pickMap;
+  final Map<String, Marker> markers = {};
 
   late Snacks snack;
 
@@ -83,6 +84,8 @@ class _ClienteAltaPageState extends State<ClienteAltaPage> {
 
     setState(() {
 
+      addMarker(coords);
+
       ggMap.moveCamera(CameraPosition(
         target: coords,
         zoom: 15,
@@ -94,6 +97,20 @@ class _ClienteAltaPageState extends State<ClienteAltaPage> {
       });
       
     });
+  }
+
+  void addMarker(LatLng coords){
+
+    markers.clear();
+    final marker = Marker(
+      markerId: MarkerId('Tu'),
+      position: coords,
+      infoWindow: InfoWindow(
+        title: 'Tu direccion',
+        snippet: '',
+      ),
+    );
+    markers['Tu'] = marker;
   }
 
   void setCoordsData(Placemark data){
@@ -110,70 +127,74 @@ class _ClienteAltaPageState extends State<ClienteAltaPage> {
   Widget bodySegment(){
     final _screenSize = MediaQuery.of(context).size;
 
-    return Container(
-      padding: EdgeInsets.symmetric(horizontal: 20.0),
-      child: Column(
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Container(
-                width: _screenSize.width*.42,
-                child: inputTextRegistro('* Nombre', TextInputType.name, false, _name)
-              ),
-              Container(
-                width: _screenSize.width*.42,
-                child: inputTextRegistro('Apellidos', TextInputType.name, false, _lastName)
-              ),
-            ],
-          ),
+    return SingleChildScrollView(
+      child: Container(
+        padding: EdgeInsets.symmetric(horizontal: 20.0),
+        child: Column(
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Container(
+                  width: _screenSize.width*.42,
+                  child: inputTextRegistro('* Nombre', TextInputType.name, false, _name)
+                ),
+                Container(
+                  width: _screenSize.width*.42,
+                  child: inputTextRegistro('Apellidos', TextInputType.name, false, _lastName)
+                ),
+              ],
+            ),
+    
+            inputTextRegistro('* Email', TextInputType.emailAddress, false, _email),
+    
+            inputTextRegistro('Telefono', TextInputType.phone, false, _phone),
+    
+            SizedBox(height: 20.0,),
+    
+            Container(
+              width: _screenSize.width*.8,
+              height: _screenSize.height*.3,
+              child: pickMap
+            ),
+    
+            inputTextRegistro('* Calle', TextInputType.text, false, _line1),
+    
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Container(
+                  width: _screenSize.width*.54,
+                  child: inputTextRegistro('* Colonia', TextInputType.text, false, _line2),
+                ),
+                Container(
+                  width: _screenSize.width*.3,
+                  child: inputTextRegistro('* Codigo Postal', TextInputType.number, false, _postalCode),
+                ),
+              ],
+            ),
+    
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Container(
+                  width: _screenSize.width*.3,
+                  child: inputTextRegistro('* Ciudad', TextInputType.text, false, _city),
+                ),
+                Container(
+                  width: _screenSize.width*.3,
+                  child: inputTextRegistro('* Estado', TextInputType.text, false, _state),
+                ),
+                Container(
+                  width: _screenSize.width*.2,
+                  child: inputTextRegistro('* Pais Code', TextInputType.text, false, _countryCode),
+                ),
+              ],
+            ),
 
-          inputTextRegistro('* Email', TextInputType.emailAddress, false, _email),
-
-          inputTextRegistro('Telefono', TextInputType.phone, false, _phone),
-
-          SizedBox(height: 20.0,),
-
-          Container(
-            width: _screenSize.width*.8,
-            height: _screenSize.height*.3,
-            child: pickMap
-          ),
-
-          inputTextRegistro('* Calle', TextInputType.text, false, _line1),
-
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Container(
-                width: _screenSize.width*.54,
-                child: inputTextRegistro('* Colonia', TextInputType.text, false, _line2),
-              ),
-              Container(
-                width: _screenSize.width*.3,
-                child: inputTextRegistro('* Codigo Postal', TextInputType.number, false, _postalCode),
-              ),
-            ],
-          ),
-
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Container(
-                width: _screenSize.width*.3,
-                child: inputTextRegistro('* Ciudad', TextInputType.text, false, _city),
-              ),
-              Container(
-                width: _screenSize.width*.3,
-                child: inputTextRegistro('* Estado', TextInputType.text, false, _state),
-              ),
-              Container(
-                width: _screenSize.width*.1,
-                child: inputTextRegistro('* Pais Code', TextInputType.text, false, _countryCode),
-              ),
-            ],
-          ),
-        ],
+            SizedBox(height: 40.0,),
+          ],
+        ),
       ),
     );
   }
@@ -184,6 +205,7 @@ class _ClienteAltaPageState extends State<ClienteAltaPage> {
 
     this.snack = Snacks(context);
     this.ggMap = new MapaGoogle(_controller, camPos);
+    this.ggMap.setMarkers(markers);
     pickMap = ggMap.map(onTapMap);
 
     return Scaffold(
