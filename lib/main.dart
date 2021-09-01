@@ -1,6 +1,7 @@
 import 'package:demo_openpay/src/pages/cliente/ClienteAltaPage.dart';
 import 'package:demo_openpay/src/pages/cliente/ClienteDetallePage.dart';
 import 'package:demo_openpay/src/pages/cliente/clientesPage.dart';
+import 'package:demo_openpay/src/pages/sucursales/SucursalesPage.dart';
 import 'package:flutter/material.dart';
 
 void main() {
@@ -18,6 +19,7 @@ class MyApp extends StatelessWidget {
         '/clientes': (context) => ClientesPage(),
         '/clienteAlta': (context) => ClienteAltaPage(),
         '/clienteDetalle': (context) => ClienteDetallePage(),
+        '/sucursales': (context) => SucursalesPage(),
       },
       theme: ThemeData(
         // This is the theme of your application.
