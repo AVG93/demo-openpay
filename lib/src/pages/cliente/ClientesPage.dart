@@ -1,6 +1,7 @@
 import 'package:demo_openpay/src/api/ClienteService.dart';
 import 'package:demo_openpay/src/models/Cliente.dart';
 import 'package:demo_openpay/src/widgets/itemCliente.dart';
+import 'package:demo_openpay/src/widgets/modals.dart';
 import 'package:flutter/material.dart';
 
 class ClientesPage extends StatefulWidget {
@@ -81,7 +82,6 @@ class _ClientesPageState extends State<ClientesPage> {
             .showSnackBar(SnackBar(content: Text('${c.email} eliminado')));
 
     });
-
     
   }
 

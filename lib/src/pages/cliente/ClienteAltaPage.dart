@@ -1,6 +1,7 @@
 import 'package:demo_openpay/src/api/ClienteService.dart';
 import 'package:demo_openpay/src/models/Cliente.dart';
 import 'package:demo_openpay/src/widgets/itemDataInput.dart';
+import 'package:demo_openpay/src/widgets/modals.dart';
 import 'package:flutter/material.dart';
 
 
@@ -16,11 +17,14 @@ class _ClienteAltaPageState extends State<ClienteAltaPage> {
   void onClickAltaCliente(Cliente c){
     ClienteService clienteService = new ClienteService();
 
+    modalLoading(context, 'Procesando ...', true);
+
     clienteService.postCliente(c)
     .then((c){
+      Navigator.pop(context);
       if(c.error){
         ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text('Error: ${c.mensaje}')));
+            .showSnackBar(SnackBar(backgroundColor: Colors.orange, content: Text('Error: ${c.mensaje}')));
       }
       else{
         print('${c.id} - ${c.name}');
