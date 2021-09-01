@@ -16,7 +16,7 @@ Widget inputTextRegistro(String placeHolder, TextInputType typeInput, bool isPas
       SizedBox(height: 20.0),
       Container(
         alignment: Alignment.centerLeft,
-        height: 35.0,
+        height: 45.0,
         child: TextField(
           obscureText: isPassword,
           keyboardType: typeInput,

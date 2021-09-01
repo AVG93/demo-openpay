@@ -1,7 +1,7 @@
 import 'package:demo_openpay/src/api/ClienteService.dart';
 import 'package:demo_openpay/src/models/Cliente.dart';
 import 'package:demo_openpay/src/widgets/itemCliente.dart';
-import 'package:demo_openpay/src/widgets/modals.dart';
+import 'package:demo_openpay/src/widgets/snackbar.dart';
 import 'package:flutter/material.dart';
 
 class ClientesPage extends StatefulWidget {
@@ -16,6 +16,8 @@ class _ClientesPageState extends State<ClientesPage> {
   ClienteService clienteService = new ClienteService();
 
   List<Cliente> clientes = <Cliente>[];
+
+  late Snacks snack;
 
 
   Widget _loadClientes(BuildContext context){
@@ -78,9 +80,7 @@ class _ClientesPageState extends State<ClientesPage> {
         print(this.clientes.length);
       });
 
-      ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text('${c.email} eliminado')));
-
+      this.snack.success('${c.email} eliminado');
     });
     
   }
@@ -89,6 +89,10 @@ class _ClientesPageState extends State<ClientesPage> {
 
   @override
   Widget build(BuildContext context) {
+
+    this.snack = Snacks(context);
+
+
     return Scaffold(
       appBar: AppBar(
         title: Text('Demo Open Pay API'),

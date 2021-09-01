@@ -1,8 +1,14 @@
+import 'dart:async';
+
 import 'package:demo_openpay/src/api/ClienteService.dart';
 import 'package:demo_openpay/src/models/Cliente.dart';
 import 'package:demo_openpay/src/widgets/itemDataInput.dart';
+import 'package:demo_openpay/src/widgets/map.dart';
 import 'package:demo_openpay/src/widgets/modals.dart';
+import 'package:demo_openpay/src/widgets/snackbar.dart';
 import 'package:flutter/material.dart';
+import 'package:geocoding/geocoding.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 class ClienteDetallePage extends StatefulWidget {
   ClienteDetallePage({Key? key}) : super(key: key);
@@ -12,6 +18,17 @@ class ClienteDetallePage extends StatefulWidget {
 }
 
 class _ClienteDetallePageState extends State<ClienteDetallePage> {
+
+  late Snacks snack;
+  late MapaGoogle ggMap;
+  bool mapEdit = false;
+
+  Completer<GoogleMapController> _controller = Completer();
+
+  CameraPosition camPos = CameraPosition(
+    target: LatLng(24.1600263,-101.4227029),
+    zoom: 5,
+  );
 
 
   TextEditingController _name = TextEditingController();
@@ -25,20 +42,31 @@ class _ClienteDetallePageState extends State<ClienteDetallePage> {
   TextEditingController _city = TextEditingController();
   TextEditingController _countryCode = TextEditingController();
 
+
+  @override
+  void initState() {
+    super.initState();
+
+    
+    
+  }
+
   void setFieldsValues(Cliente cliente){
 
-    _name.text = validacionNull(cliente.name);
-    _lastName.text = validacionNull(cliente.lastName);
-    _email.text = validacionNull(cliente.email);
-    _phone.text = validacionNull(cliente.phoneNumber);
+    if(!mapEdit){
+      _name.text = validacionNull(cliente.name);
+      _lastName.text = validacionNull(cliente.lastName);
+      _email.text = validacionNull(cliente.email);
+      _phone.text = validacionNull(cliente.phoneNumber);
 
-    if(cliente.address != null){
-      _line1.text = validacionNull(cliente.address!.line1);
-      _line2.text = validacionNull(cliente.address!.line2!);
-      _postalCode.text = validacionNull(cliente.address!.postalCode);
-      _city.text = validacionNull(cliente.address!.city);
-      _state.text = validacionNull(cliente.address!.state);
-      _countryCode.text = validacionNull(cliente.address!.countryCode);
+      if(cliente.address != null){
+        _line1.text = validacionNull(cliente.address!.line1);
+        _line2.text = validacionNull(cliente.address!.line2!);
+        _postalCode.text = validacionNull(cliente.address!.postalCode);
+        _city.text = validacionNull(cliente.address!.city);
+        _state.text = validacionNull(cliente.address!.state);
+        _countryCode.text = validacionNull(cliente.address!.countryCode);
+      }
     }
 
   }
@@ -56,8 +84,7 @@ class _ClienteDetallePageState extends State<ClienteDetallePage> {
     .then((c){
       Navigator.pop(context);
       if(c.error){
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(backgroundColor: Colors.orange, content: Text('Error: ${c.mensaje}')));
+        this.snack.error(c.mensaje!);
       }
       else{
         print('${c.id} - ${c.name}');
@@ -66,13 +93,73 @@ class _ClienteDetallePageState extends State<ClienteDetallePage> {
     });
   }
 
+  void onTapMap(LatLng coords){
+    print(coords.latitude.toString() + ', ' + coords.longitude.toString());
+
+    setState(() {
+
+      mapEdit = true;
+
+      ggMap.moveCamera(CameraPosition(
+        target: coords,
+        bearing: 0,
+        tilt: 0,
+        zoom: 15,
+      ));
+
+      ggMap.getDataFromCoords(coords).then((resp){
+        print(resp);
+        setCoordsData(resp[0]);
+      });
+      
+    });
+  }
+
+  void onGetCoords(){
+    if(!mapEdit){
+      setState(() {
+
+        ggMap.getCoordsFromData('${_line1.text}, ${_line2.text} ${_postalCode.text}, ${_city.text}, ${_state.text}, ${_countryCode.text}')
+        .then((value){
+          print(value[0].latitude);
+          print(value[0].longitude);
+
+          ggMap.moveCamera(CameraPosition(
+            bearing: 0,
+            tilt: value[0].latitude == 0 ? 0 : 90,
+            target: LatLng(value[0].latitude, value[0].longitude),
+            zoom: value[0].latitude == 0 ? 1 : 15,
+          ));
+        });
+        
+      });
+
+    }
+    
+  }
+
+
+  void setCoordsData(Placemark data){
+    _line1.text = data.street.toString();
+    _line2.text = data.subLocality.toString();
+    _city.text = data.locality.toString();
+    _state.text = data.administrativeArea.toString();
+    _postalCode.text = data.postalCode.toString();
+    _countryCode.text = data.isoCountryCode.toString();
+
+  }
+
 
   @override
   Widget build(BuildContext context) {
 
     final Cliente cliente = ModalRoute.of(context)!.settings.arguments as Cliente;
 
+    this.snack = Snacks(context);
+    this.ggMap = new MapaGoogle(_controller, camPos);
+
     setFieldsValues(cliente);
+    onGetCoords();
 
     final _screenSize = MediaQuery.of(context).size;
 
@@ -180,6 +267,14 @@ class _ClienteDetallePageState extends State<ClienteDetallePage> {
 
               ],
             ),
+
+            SizedBox(height: 20.0,),
+
+            Container(
+              width: _screenSize.width*.8,
+              height: _screenSize.height*.2,
+              child: ggMap.map(onTapMap),
+            )
             
             
             

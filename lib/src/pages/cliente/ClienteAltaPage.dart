@@ -1,9 +1,10 @@
 import 'dart:async';
-
 import 'package:demo_openpay/src/api/ClienteService.dart';
 import 'package:demo_openpay/src/models/Cliente.dart';
 import 'package:demo_openpay/src/widgets/itemDataInput.dart';
+import 'package:demo_openpay/src/widgets/map.dart';
 import 'package:demo_openpay/src/widgets/modals.dart';
+import 'package:demo_openpay/src/widgets/snackbar.dart';
 import 'package:flutter/material.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
@@ -26,12 +27,10 @@ class _ClienteAltaPageState extends State<ClienteAltaPage> {
   );
 
 
-  Map<String, Marker> _markers = {};
-
+  late MapaGoogle ggMap;
   late GoogleMap pickMap;
 
-
-  //var marker = _kGooglePlex.target;
+  late Snacks snack;
 
   TextEditingController _name = TextEditingController();
   TextEditingController _lastName = TextEditingController();
@@ -45,8 +44,24 @@ class _ClienteAltaPageState extends State<ClienteAltaPage> {
   TextEditingController _countryCode = TextEditingController();
 
 
-  void onClickAltaCliente(Cliente c){
+  void onClickAltaCliente(){
+    
     ClienteService clienteService = new ClienteService();
+    Cliente c = new Cliente(
+      id: '', 
+      name: _name.text, 
+      lastName: _lastName.text,
+      email: _email.text, 
+      phoneNumber: _phone.text,
+      address: new Address(
+        line1: _line1.text, 
+        line2: _line2.text, 
+        state: _state.text, 
+        city: _city.text, 
+        postalCode: _postalCode.text, 
+        countryCode: _countryCode.text),
+      creationDate: new DateTime(1990, 01, 01),
+    );
 
     modalLoading(context, 'Procesando ...', true);
 
@@ -54,13 +69,30 @@ class _ClienteAltaPageState extends State<ClienteAltaPage> {
     .then((c){
       Navigator.pop(context);
       if(c.error){
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(backgroundColor: Colors.orange, content: Text('Error: ${c.mensaje}')));
+        snack.error(c.mensaje!);
       }
       else{
         print('${c.id} - ${c.name}');
         Navigator.popAndPushNamed(context, '/clientes');
       }
+    });
+  }
+
+  void onTapMap(LatLng coords){
+    print(coords.latitude.toString() + ', ' + coords.longitude.toString());
+
+    setState(() {
+
+      ggMap.moveCamera(CameraPosition(
+        target: coords,
+        zoom: 15,
+      ));
+
+      ggMap.getDataFromCoords(coords).then((resp){
+        print(resp);
+        setCoordsData(resp[0]);
+      });
+      
     });
   }
 
@@ -74,81 +106,90 @@ class _ClienteAltaPageState extends State<ClienteAltaPage> {
 
   }
 
-  Future<void> _moveCamera(CameraPosition cp) async {
-    final GoogleMapController controller = await _controller.future;
-    controller.animateCamera(CameraUpdate.newCameraPosition(cp));
-  }
-
-  Widget mapSegment(){
+  
+  Widget bodySegment(){
     final _screenSize = MediaQuery.of(context).size;
 
     return Container(
-      width: _screenSize.width*.8,
-      height: _screenSize.height*.3,
-      child: pickMap
+      padding: EdgeInsets.symmetric(horizontal: 20.0),
+      child: Column(
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Container(
+                width: _screenSize.width*.42,
+                child: inputTextRegistro('* Nombre', TextInputType.name, false, _name)
+              ),
+              Container(
+                width: _screenSize.width*.42,
+                child: inputTextRegistro('Apellidos', TextInputType.name, false, _lastName)
+              ),
+            ],
+          ),
+
+          inputTextRegistro('* Email', TextInputType.emailAddress, false, _email),
+
+          inputTextRegistro('Telefono', TextInputType.phone, false, _phone),
+
+          SizedBox(height: 20.0,),
+
+          Container(
+            width: _screenSize.width*.8,
+            height: _screenSize.height*.3,
+            child: pickMap
+          ),
+
+          inputTextRegistro('* Calle', TextInputType.text, false, _line1),
+
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Container(
+                width: _screenSize.width*.54,
+                child: inputTextRegistro('* Colonia', TextInputType.text, false, _line2),
+              ),
+              Container(
+                width: _screenSize.width*.3,
+                child: inputTextRegistro('* Codigo Postal', TextInputType.number, false, _postalCode),
+              ),
+            ],
+          ),
+
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Container(
+                width: _screenSize.width*.3,
+                child: inputTextRegistro('* Ciudad', TextInputType.text, false, _city),
+              ),
+              Container(
+                width: _screenSize.width*.3,
+                child: inputTextRegistro('* Estado', TextInputType.text, false, _state),
+              ),
+              Container(
+                width: _screenSize.width*.1,
+                child: inputTextRegistro('* Pais Code', TextInputType.text, false, _countryCode),
+              ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 
-  Future<List<Placemark>> getCoordsData(LatLng coords) async {
-    List<Placemark> placemarks = await placemarkFromCoordinates(coords.latitude, coords.longitude);
-
-    return placemarks;
-
-  }
-
-  GoogleMap map(){
-    return new GoogleMap(
-        zoomControlsEnabled: true,
-        myLocationButtonEnabled: false,
-        mapType: MapType.normal,
-        initialCameraPosition: camPos,
-        onMapCreated: (GoogleMapController controller){
-          _controller.complete(controller);
-        },
-        onTap: (LatLng coords){
-
-          print(coords.latitude.toString() + ', ' + coords.longitude.toString());
-
-          setState(() {
-
-            camPos = CameraPosition(
-              target: coords,
-              zoom: 15,
-            );
-
-            _moveCamera(camPos);
-
-            getCoordsData(coords).then((resp){
-
-              print(resp);
-
-               setCoordsData(resp[0]);
-
-            });
-            
-          });
-
-        },
-        markers: _markers.values.toSet(),
-      );
-  }
-
-
+  
   @override
   Widget build(BuildContext context) {
 
-    pickMap = map();
-
-    
-
-    final _screenSize = MediaQuery.of(context).size;
-
+    this.snack = Snacks(context);
+    this.ggMap = new MapaGoogle(_controller, camPos);
+    pickMap = ggMap.map(onTapMap);
 
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
           onPressed: (){
-
             Navigator.popAndPushNamed(context, '/clientes');
           }, 
           icon: Icon(Icons.arrow_back),
@@ -157,109 +198,13 @@ class _ClienteAltaPageState extends State<ClienteAltaPage> {
         title: Text('Alta de Cliente'),
         actions: [
           IconButton(
-            onPressed: (){
-
-              onClickAltaCliente(new Cliente(
-                id: '', 
-                name: _name.text, 
-                lastName: _lastName.text,
-                email: _email.text, 
-                phoneNumber: _phone.text,
-                address: new Address(
-                  line1: _line1.text, 
-                  line2: _line2.text, 
-                  state: _state.text, 
-                  city: _city.text, 
-                  postalCode: _postalCode.text, 
-                  countryCode: _countryCode.text),
-                creationDate: new DateTime(1990, 01, 01),
-
-                )
-              );
-
-            }, 
+            onPressed: onClickAltaCliente, 
             icon: Icon(Icons.check),
             disabledColor: Colors.red,
           )
         ],
       ),
-      body: Container(
-        padding: EdgeInsets.symmetric(horizontal: 20.0),
-        child: Column(
-          
-          children: [
-
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-
-                Container(
-                  width: _screenSize.width*.42,
-                  child: inputTextRegistro('* Nombre', TextInputType.name, false, _name)
-                ),
-                Container(
-                  width: _screenSize.width*.42,
-                  child: inputTextRegistro('Apellidos', TextInputType.name, false, _lastName)
-                ),
-
-              ],
-            ),
-
-            inputTextRegistro('* Email', TextInputType.emailAddress, false, _email),
-
-            inputTextRegistro('Telefono', TextInputType.phone, false, _phone),
-
-            SizedBox(height: 20.0,),
-
-            mapSegment(),
-
-
-            inputTextRegistro('* Calle', TextInputType.text, false, _line1),
-
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-
-                Container(
-                  width: _screenSize.width*.54,
-                  child: inputTextRegistro('* Colonia', TextInputType.text, false, _line2),
-                ),
-                Container(
-                  width: _screenSize.width*.3,
-                  child: inputTextRegistro('* Codigo Postal', TextInputType.number, false, _postalCode),
-                ),
-
-              ],
-            ),
-
-
-
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-
-                Container(
-                  width: _screenSize.width*.3,
-                  child: inputTextRegistro('* Ciudad', TextInputType.text, false, _city),
-                ),
-                Container(
-                  width: _screenSize.width*.3,
-                  child: inputTextRegistro('* Estado', TextInputType.text, false, _state),
-                ),
-                Container(
-                  width: _screenSize.width*.1,
-                  child: inputTextRegistro('* Pais Code', TextInputType.text, false, _countryCode),
-                ),
-
-              ],
-            ),
-
-            
-            
-          ],
-        ),
-      ),
-
+      body: bodySegment(),
     );
   }
 
