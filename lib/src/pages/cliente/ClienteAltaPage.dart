@@ -1,8 +1,11 @@
+import 'dart:async';
+
 import 'package:demo_openpay/src/api/ClienteService.dart';
 import 'package:demo_openpay/src/models/Cliente.dart';
 import 'package:demo_openpay/src/widgets/itemDataInput.dart';
 import 'package:demo_openpay/src/widgets/modals.dart';
 import 'package:flutter/material.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 
 class ClienteAltaPage extends StatefulWidget {
@@ -13,6 +16,25 @@ class ClienteAltaPage extends StatefulWidget {
 }
 
 class _ClienteAltaPageState extends State<ClienteAltaPage> {
+
+  Completer<GoogleMapController> _controller = Completer();
+
+  static final CameraPosition _kGooglePlex = CameraPosition(
+    target: LatLng(24.1600263,-101.4227029),
+    zoom: 5,
+  );
+
+  static final CameraPosition _coords = CameraPosition(
+      bearing: 192.8334901395799,
+      target: LatLng(24.1600263,-101.4227029),
+      tilt: 59.440717697143555,
+      zoom: 19.151926040649414);
+
+  Map<String, Marker> _markers = {};
+
+
+  var marker = _kGooglePlex.target;
+
 
   void onClickAltaCliente(Cliente c){
     ClienteService clienteService = new ClienteService();
@@ -31,6 +53,29 @@ class _ClienteAltaPageState extends State<ClienteAltaPage> {
         Navigator.popAndPushNamed(context, '/clientes');
       }
     });
+  }
+
+  Widget mapSegment(){
+    final _screenSize = MediaQuery.of(context).size;
+
+    return Container(
+      width: _screenSize.width*.8,
+      height: _screenSize.height*.3,
+      child: GoogleMap(
+        myLocationButtonEnabled: false,
+        mapType: MapType.normal,
+        initialCameraPosition: _kGooglePlex,
+        onMapCreated: (GoogleMapController controller){
+          _controller.complete(controller);
+        },
+        onTap: (LatLng coords){
+
+          print(coords.latitude.toString() + ', ' + coords.longitude.toString());
+
+        },
+        markers: _markers.values.toSet(),
+      )
+    );
   }
 
 
@@ -116,6 +161,10 @@ class _ClienteAltaPageState extends State<ClienteAltaPage> {
 
             inputTextRegistro('Telefono', TextInputType.phone, false, _phone),
 
+            SizedBox(height: 20.0,),
+
+            mapSegment(),
+
 
             inputTextRegistro('* Calle', TextInputType.text, false, _line1),
 
@@ -156,6 +205,8 @@ class _ClienteAltaPageState extends State<ClienteAltaPage> {
 
               ],
             ),
+
+            
             
           ],
         ),

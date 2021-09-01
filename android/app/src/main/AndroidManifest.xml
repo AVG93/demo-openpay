@@ -3,6 +3,9 @@
    <application
         android:label="demo_openpay"
         android:icon="@mipmap/ic_launcher">
+
+        <meta-data android:name="com.google.android.geo.API_KEY"
+               android:value="AIzaSyB3JPfRef0HZpdl3d7EZSgpDfePsDtKywk"/>
         <activity
             android:name=".MainActivity"
             android:launchMode="singleTop"
