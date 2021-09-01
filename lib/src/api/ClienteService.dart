@@ -35,13 +35,13 @@ class ClienteService{
       response = await http.post(
         Uri.parse(Routes.postCliente), 
         headers: Routes.headersOpenPay,
-        body: ClienteToJson(c)
+        body: clienteToJson(c)
       );
 
       final responseJson = jsonDecode(response.body);
       if(Routes.printResponses){print(responseJson);}
 
-      c = ClienteFromJson(response.body);
+      c = clienteFromJson(response.body);
     }
     catch(ex){
       c.error = true;
@@ -72,13 +72,13 @@ class ClienteService{
       response = await http.put(
         Uri.parse(Routes.updateCliente + '/${c.id}'), 
         headers: Routes.headersOpenPay,
-        body: ClienteToJson(c)
+        body: clienteToJson(c)
       );
       
       final responseJson = jsonDecode(response.body);
       if(Routes.printResponses){print(responseJson);}
 
-      c = ClienteFromJson(response.body);
+      c = clienteFromJson(response.body);
     }
     catch(ex){
       c.error = true;
