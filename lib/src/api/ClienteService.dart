@@ -1,6 +1,4 @@
-
 import 'dart:convert';
-import 'dart:io';
 
 import 'package:demo_openpay/src/api/routes.dart';
 import 'package:demo_openpay/src/models/Cliente.dart';
@@ -30,17 +28,27 @@ class ClienteService{
 
 
   Future<Cliente> postCliente(Cliente c) async {
-    
-    final response = await http.post(
-      Uri.parse(Routes.postCliente), 
-      headers: Routes.headersOpenPay,
-      body: ClienteToJson(c)
-    );
 
-    final responseJson = jsonDecode(response.body);
-    if(Routes.printResponses){print(responseJson);}
+    dynamic response;
 
-    return ClienteFromJson(response.body);
+    try{
+      response = await http.post(
+        Uri.parse(Routes.postCliente), 
+        headers: Routes.headersOpenPay,
+        body: ClienteToJson(c)
+      );
+
+      final responseJson = jsonDecode(response.body);
+      if(Routes.printResponses){print(responseJson);}
+
+      c = ClienteFromJson(response.body);
+    }
+    catch(ex){
+      c.error = true;
+      c.mensaje = jsonDecode(response.body)['description'];
+    }
+
+    return c;
   }
 
 
@@ -50,10 +58,34 @@ class ClienteService{
       Uri.parse(Routes.deleteCliente + '/$clienteId'), 
       headers: Routes.headersOpenPay
     );
-    
+
     if(Routes.printResponses){print(response.toString());}
 
     return response.statusCode == 204 ? true : false;
+  }
+
+  Future<Cliente> updateCliente(Cliente c) async {
+
+    dynamic response;
+
+    try{
+      response = await http.put(
+        Uri.parse(Routes.updateCliente + '/${c.id}'), 
+        headers: Routes.headersOpenPay,
+        body: ClienteToJson(c)
+      );
+      
+      final responseJson = jsonDecode(response.body);
+      if(Routes.printResponses){print(responseJson);}
+
+      c = ClienteFromJson(response.body);
+    }
+    catch(ex){
+      c.error = true;
+      c.mensaje = jsonDecode(response.body)['description'];
+    }
+    
+    return c;
   }
 
 

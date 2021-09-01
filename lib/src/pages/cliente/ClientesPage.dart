@@ -48,7 +48,6 @@ class _ClientesPageState extends State<ClientesPage> {
         itemBuilder: (BuildContext context, int index) {
           return itemCliente(context, clientes[index], this.onClickItemCliente, this.onDismissItemCliente, index);
         },
-        //separatorBuilder: (BuildContext context, int index) => const Divider(),
       );
     }
     else{
@@ -62,11 +61,11 @@ class _ClientesPageState extends State<ClientesPage> {
   }
 
   void onClickAddCliente(){
-    Navigator.pushNamed(context, '/clienteAlta');//es un distinto tipo
+    Navigator.popAndPushNamed(context, '/clienteAlta');
   }
 
   void onClickItemCliente(Cliente c){
-    Navigator.pushNamed(context, '/clienteDetalle', arguments: c);//es un distinto tipo
+    Navigator.popAndPushNamed(context, '/clienteDetalle', arguments: c);
   }
 
   void onDismissItemCliente(Cliente c, int index){
@@ -74,11 +73,10 @@ class _ClientesPageState extends State<ClientesPage> {
     clienteService.deleteCliente(c.id).then((resp){
 
       setState(() {
-        //items.removeAt(index);
         this.clientes.removeAt(index);
         print(this.clientes.length);
       });
-      
+
       ScaffoldMessenger.of(context)
             .showSnackBar(SnackBar(content: Text('${c.email} eliminado')));
 

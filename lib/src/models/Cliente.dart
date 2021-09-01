@@ -27,6 +27,9 @@ class Cliente {
         required this.creationDate,
         this.externalId,
         this.clabe,
+
+        this.error = false,
+        this.mensaje
     });
 
     String id;
@@ -38,6 +41,8 @@ class Cliente {
     DateTime creationDate;
     String? externalId;
     String? clabe;
+    bool error;
+    String? mensaje;
 
     factory Cliente.fromJson(Map<String, dynamic> json) => Cliente(
         id: json["id"],

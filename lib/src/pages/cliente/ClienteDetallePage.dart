@@ -1,3 +1,4 @@
+import 'package:demo_openpay/src/api/ClienteService.dart';
 import 'package:demo_openpay/src/models/Cliente.dart';
 import 'package:demo_openpay/src/widgets/itemDataInput.dart';
 import 'package:flutter/material.dart';
@@ -10,43 +11,106 @@ class ClienteDetallePage extends StatefulWidget {
 }
 
 class _ClienteDetallePageState extends State<ClienteDetallePage> {
+
+
+  TextEditingController _name = TextEditingController();
+  TextEditingController _lastName = TextEditingController();
+  TextEditingController _email = TextEditingController();
+  TextEditingController _phone = TextEditingController();
+  TextEditingController _line1 = TextEditingController();
+  TextEditingController _line2 = TextEditingController();
+  TextEditingController _postalCode = TextEditingController();
+  TextEditingController _state = TextEditingController();
+  TextEditingController _city = TextEditingController();
+  TextEditingController _countryCode = TextEditingController();
+
+  void setFieldsValues(Cliente cliente){
+
+    _name.text = validacionNull(cliente.name);
+    _lastName.text = validacionNull(cliente.lastName);
+    _email.text = validacionNull(cliente.email);
+    _phone.text = validacionNull(cliente.phoneNumber);
+
+    if(cliente.address != null){
+      _line1.text = validacionNull(cliente.address!.line1);
+      _line2.text = validacionNull(cliente.address!.line2!);
+      _postalCode.text = validacionNull(cliente.address!.postalCode);
+      _city.text = validacionNull(cliente.address!.city);
+      _state.text = validacionNull(cliente.address!.state);
+      _countryCode.text = validacionNull(cliente.address!.countryCode);
+    }
+
+  }
+
+  String validacionNull(String? text){
+    return (text != null ? text: '');
+  }
+
+  void onClickUpdateCliente(Cliente c){
+    ClienteService clienteService = new ClienteService();
+
+    clienteService.updateCliente(c)
+    .then((c){
+
+      if(c.error){
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text('Error: ${c.mensaje}')));
+      }
+      else{
+        print('${c.id} - ${c.name}');
+        Navigator.popAndPushNamed(context, '/clientes');
+      }
+    });
+  }
+
+
   @override
   Widget build(BuildContext context) {
 
     final Cliente cliente = ModalRoute.of(context)!.settings.arguments as Cliente;
 
-    TextEditingController _name = TextEditingController();
-    TextEditingController _lastName = TextEditingController();
-    TextEditingController _email = TextEditingController();
-    TextEditingController _phone = TextEditingController();
-    TextEditingController _line1 = TextEditingController();
-    TextEditingController _line2 = TextEditingController();
-    TextEditingController _postalCode = TextEditingController();
-    TextEditingController _state = TextEditingController();
-    TextEditingController _city = TextEditingController();
-    TextEditingController _countryCode = TextEditingController();
-
-    _name.text = cliente.name;
-    _lastName.text = cliente.lastName!;
-    _email.text = cliente.email;
-    _phone.text = cliente.phoneNumber!;
-    _line1.text = cliente.address!.line1;
-    _line2.text = cliente.address!.line2!;
-    _postalCode.text = cliente.address!.postalCode;
-    _city.text = cliente.address!.city;
-    _state.text = cliente.address!.state;
-    _countryCode.text = cliente.address!.countryCode;
+    setFieldsValues(cliente);
 
     final _screenSize = MediaQuery.of(context).size;
 
-
-
-
-
-
     return Scaffold(
       appBar: AppBar(
+        leading: IconButton(
+          onPressed: (){
+
+            Navigator.popAndPushNamed(context, '/clientes');
+          }, 
+          icon: Icon(Icons.arrow_back),
+          disabledColor: Colors.red,
+        ),
         title: Text(cliente.name),
+        actions: [
+          IconButton(
+            onPressed: (){
+
+              onClickUpdateCliente(new Cliente(
+                id: cliente.id, 
+                name: _name.text, 
+                lastName: _lastName.text,
+                email: _email.text, 
+                phoneNumber: _phone.text,
+                address: new Address(
+                  line1: _line1.text, 
+                  line2: _line2.text, 
+                  state: _state.text, 
+                  city: _city.text, 
+                  postalCode: _postalCode.text, 
+                  countryCode: _countryCode.text),
+                creationDate: new DateTime(1990, 01, 01),
+
+                )
+              );
+
+            }, 
+            icon: Icon(Icons.check),
+            disabledColor: Colors.red,
+          )
+        ],
       ),
       body: Container(
         padding: EdgeInsets.symmetric(horizontal: 20.0),
@@ -70,21 +134,9 @@ class _ClienteDetallePageState extends State<ClienteDetallePage> {
               ],
             ),
 
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
+            inputTextRegistro('* Email', TextInputType.emailAddress, false, _email),
 
-                Container(
-                  width: _screenSize.width*.42,
-                  child: inputTextRegistro('Email', TextInputType.emailAddress, false, _email),
-                ),
-                Container(
-                  width: _screenSize.width*.42,
-                  child: inputTextRegistro('Telefono', TextInputType.phone, false, _phone),
-                ),
-
-              ],
-            ),
+            inputTextRegistro('Telefono', TextInputType.phone, false, _phone),
 
             inputTextRegistro('Calle', TextInputType.text, false, _line1),
 
