@@ -5,6 +5,7 @@ import 'package:demo_openpay/src/models/Cliente.dart';
 import 'package:demo_openpay/src/widgets/itemDataInput.dart';
 import 'package:demo_openpay/src/widgets/modals.dart';
 import 'package:flutter/material.dart';
+import 'package:geocoding/geocoding.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 
@@ -19,21 +20,29 @@ class _ClienteAltaPageState extends State<ClienteAltaPage> {
 
   Completer<GoogleMapController> _controller = Completer();
 
-  static final CameraPosition _kGooglePlex = CameraPosition(
+  CameraPosition camPos = CameraPosition(
     target: LatLng(24.1600263,-101.4227029),
     zoom: 5,
   );
 
-  static final CameraPosition _coords = CameraPosition(
-      bearing: 192.8334901395799,
-      target: LatLng(24.1600263,-101.4227029),
-      tilt: 59.440717697143555,
-      zoom: 19.151926040649414);
 
   Map<String, Marker> _markers = {};
 
+  late GoogleMap pickMap;
 
-  var marker = _kGooglePlex.target;
+
+  //var marker = _kGooglePlex.target;
+
+  TextEditingController _name = TextEditingController();
+  TextEditingController _lastName = TextEditingController();
+  TextEditingController _email = TextEditingController();
+  TextEditingController _phone = TextEditingController();
+  TextEditingController _line1 = TextEditingController();
+  TextEditingController _line2 = TextEditingController();
+  TextEditingController _postalCode = TextEditingController();
+  TextEditingController _state = TextEditingController();
+  TextEditingController _city = TextEditingController();
+  TextEditingController _countryCode = TextEditingController();
 
 
   void onClickAltaCliente(Cliente c){
@@ -55,16 +64,44 @@ class _ClienteAltaPageState extends State<ClienteAltaPage> {
     });
   }
 
+  void setCoordsData(Placemark data){
+    _line1.text = data.street.toString();
+    _line2.text = data.subLocality.toString();
+    _city.text = data.locality.toString();
+    _state.text = data.administrativeArea.toString();
+    _postalCode.text = data.postalCode.toString();
+    _countryCode.text = data.isoCountryCode.toString();
+
+  }
+
+  Future<void> _moveCamera(CameraPosition cp) async {
+    final GoogleMapController controller = await _controller.future;
+    controller.animateCamera(CameraUpdate.newCameraPosition(cp));
+  }
+
   Widget mapSegment(){
     final _screenSize = MediaQuery.of(context).size;
 
     return Container(
       width: _screenSize.width*.8,
       height: _screenSize.height*.3,
-      child: GoogleMap(
+      child: pickMap
+    );
+  }
+
+  Future<List<Placemark>> getCoordsData(LatLng coords) async {
+    List<Placemark> placemarks = await placemarkFromCoordinates(coords.latitude, coords.longitude);
+
+    return placemarks;
+
+  }
+
+  GoogleMap map(){
+    return new GoogleMap(
+        zoomControlsEnabled: true,
         myLocationButtonEnabled: false,
         mapType: MapType.normal,
-        initialCameraPosition: _kGooglePlex,
+        initialCameraPosition: camPos,
         onMapCreated: (GoogleMapController controller){
           _controller.complete(controller);
         },
@@ -72,26 +109,37 @@ class _ClienteAltaPageState extends State<ClienteAltaPage> {
 
           print(coords.latitude.toString() + ', ' + coords.longitude.toString());
 
+          setState(() {
+
+            camPos = CameraPosition(
+              target: coords,
+              zoom: 15,
+            );
+
+            _moveCamera(camPos);
+
+            getCoordsData(coords).then((resp){
+
+              print(resp);
+
+               setCoordsData(resp[0]);
+
+            });
+            
+          });
+
         },
         markers: _markers.values.toSet(),
-      )
-    );
+      );
   }
 
 
   @override
   Widget build(BuildContext context) {
 
-    TextEditingController _name = TextEditingController();
-    TextEditingController _lastName = TextEditingController();
-    TextEditingController _email = TextEditingController();
-    TextEditingController _phone = TextEditingController();
-    TextEditingController _line1 = TextEditingController();
-    TextEditingController _line2 = TextEditingController();
-    TextEditingController _postalCode = TextEditingController();
-    TextEditingController _state = TextEditingController();
-    TextEditingController _city = TextEditingController();
-    TextEditingController _countryCode = TextEditingController();
+    pickMap = map();
+
+    
 
     final _screenSize = MediaQuery.of(context).size;
 
