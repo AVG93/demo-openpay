@@ -5,6 +5,7 @@ class Routes{
   static const userIdOpenPay = '<User-Id>';
   static const keyOpenPay = '<key>';
   static const apiUrl = 'https://sandbox-api.openpay.mx/v1/' + userIdOpenPay;
+  static const apiUrlPublic = 'https://api.openpay.mx/';
 
   static const headersOpenPay = {
       HttpHeaders.authorizationHeader: 'Basic $keyOpenPay',
@@ -17,5 +18,9 @@ class Routes{
   static const postCliente = apiUrl + '/customers';
   static const getClientes = apiUrl + '/customers';
   static const deleteCliente = apiUrl + '/customers';
+  static const updateCliente = apiUrl + '/customers';
+  static const getSucursales = apiUrlPublic + '/stores';
   
 }
+
+
